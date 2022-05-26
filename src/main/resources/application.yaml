@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: yk-task
+  profiles:
+    active:
+      - dev1
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+
+authorize:
+  enable: true
+  permission:
+    enable: false
+  secret: ThisIsSecretForJWTHS512SignatureAlgorithmThatMUSTHave512bitsKeySize
+  expiration:
+    access: 604800
+    refresh: 259200
+  ############################################
+  #   有效时长
+  #     单位：d:天、h:小时、m:分钟、s:秒
+  ###########################################
+  effective-time: 7d
+  ignored:
+    urls:
+#      - /api/v1/data/**
+      - /webjars/swagger-ui/**
+      - /v3/api-docs/**
+      - /error/**
+      - /csrf
+      - /favicon.ico
+
+springdoc:
+  # OpenAPI文档相关参数
+  api-docs:
+    # OpenAPI文档开关, true: 开启OpenAPI文档访问功能, false: 关闭。
+    enabled: true
+    # JSON格式的OpenAPI文档的访问路径
+    path: /v3/api-docs
+  # 扫描哪些包来生成OpenAPI文档, 多个包名用逗号分隔
+  packages-to-scan: com.ykwl.task.controller
+  # 路径匹配规则, API路径符合这些匹配规则才会包含到OpenAPI文档中, 多个规则用逗号分隔
+  #paths-to-match: /*
+  swagger-ui:
+    enabled: true
+    use-root-path: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: ALWAYS
+      status:
+        http-mapping:
+          DOWN: 200
+          OUT_OF_SERVICE: 200
+          FATAL: 200
+          UNKNOWN: 200
+info:
+  version: 1.0.0
+
+ykwl:
+  aesKey: 41b9a95be60eaf502b3f7fdc75f67d50
+

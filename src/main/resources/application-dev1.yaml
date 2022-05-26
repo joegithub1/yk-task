@@ -1,0 +1,166 @@
+#debug: false
+
+logging:
+  config: classpath:logback-spring.xml                               # 配置日志级别，让mybatis打印出执行的SQL
+  level:
+    root: INFO
+    "[com.apache.ibatis]": INFO
+    "[org.springframework]": WARN
+    "[org.springframework.test]": INFO
+    "[com.alibaba.nacos.client]": WARN
+    "[com.alibaba.cloud]": WARN
+    "[org.springframework.cloud.task]": DEBUG
+
+server:
+  port: 9007
+  maxHttpHeaderSize: 8192
+  compression:
+    excluded-user-agents: gozilla, traviata
+  #jetty配置，主要是acceptors和selectors
+  jetty:
+    connection-idle-timeout: 30000
+    accesslog:
+      #      custom-format:
+      enabled: true
+      filename: /logs/ykwl/access_log_data.yyyy_MM_dd.log
+      file-date-format: yyyy-MM-dd
+      retention-period: 30
+      append: true
+      custom-format: Asia/Shanghai
+    max-http-form-post-size: 200MB
+    threads:
+      max-queue-capacity: 1000
+      idle-timeout: 30000
+      min: 20
+      max: 200
+      acceptors: 2
+      selectors: 4
+
+spring:
+  servlet:
+    multipart:
+      max-request-size: 300MB
+      max-file-size: 300M
+      enabled: true
+  application:
+    name: yk-task
+  cloud:
+    inetutils:
+      timeout-seconds: 15
+    nacos:
+      server-addr: 172.16.0.53:8848
+      #      standalone: true
+      discovery:
+        server-addr: 172.16.0.53:8848
+        group: DEV-GROUP
+    task:
+      #为true表示同一个时刻只能有一个叫这个名字的task执行，否则会抛出Task with name “application” is already running.
+      single-instance-enabled: true
+  jpa:
+    show-sql: true
+  datasource:                                     # 指定数据源
+    type: com.zaxxer.hikari.HikariDataSource          # 指定数据源类型
+    platform: mysql
+    url: jdbc:mysql://127.0.0.1:3306/ykwl_task?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&useSSL=false&nullCatalogMeansCurrent=true&tinyInt1isBit=false&useAffectedRows=true
+    username: root
+    password: root
+    driverClassName: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 28000
+      minimum-idle: 5
+      maximum-pool-size: 20
+      validation-timeout: 3000
+      idle-timeout: 28000
+      max-lifetime: 28000
+      auto-commit: true
+      connection-test-query: SELECT 1
+      pool-name: YKDataHikariCP
+  cache:
+    cacheNames:
+      - ishowService
+      - attachmentService
+      - recommendService
+    type: REDIS
+    redis:
+      time-to-live: 30M
+      cache-null-values: false
+  #    type: CAFFEINE
+  #    caffeine: #refreshAfterWrite写后多久更新策略  expireAfterWrite：代表着写了之后多久过期。expireAfterAccess： 代表着最后一次访问了之后多久过期。
+  #      spec: initialCapacity=100,maximumSize=2000,refreshAfterWrite=300s,expireAfterWrite=1800s
+  redis:
+    database: 0  #Redis索引0~15，默认为0
+    host: 172.16.1.226 #192.168.0.106
+    port: 6379
+    password: 168168
+    #    password: ruzuan!@#098
+    timeout: 10000ms    #连接超时时间（毫秒）
+    lettuce: # 这里标明使用lettuce配置
+      pool:
+        max-active: 20   #连接池最大连接数（使用负值表示没有限制）
+        max-wait: -1ms  #连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 5     #连接池中的最大空闲连接
+        min-idle: 0     #连接池中的最小空闲连接
+  # Enable Redis repositories.
+  data:
+    redis:
+      repositories:
+        enabled: true
+
+  # devtools配置
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      port: 35729
+
+dubbo:
+  application:
+    metadata-type: remote
+    name: yk-task
+    version: 1.0.0
+    qos-enable: false
+  metadata-report:
+    #    registry: nacos
+    address: nacos://172.16.0.53:8848
+    group: DEV-GROUP
+  config:
+    override: false
+    multiple: false
+  #  config-center:
+  #    config-file: /dubbo-dev/data-config
+  #    protocol: nacos
+  #    check: false
+  scan:
+    base-packages: com.ykwl.task.service.impl
+  protocol:
+    #    host: ${PROTOCOLHOST}       #用于多网卡时指定IP，要不然集群会有问题
+    name: dubbo
+    # dubbo 协议端口（ -1 表示自增端口，从 20880 开始）
+    port: -1
+    optimizer: com.ykwl.serialize.SerializationOptimizerImpl
+    serialization: kryo #fastjson
+  registry:
+    timeout: 10000
+    # 挂载到 Spring Cloud 注册中心（测试暂不好使，还是直接用nacos）
+    address: nacos://172.16.0.53:8848
+    group: DEV-GROUP
+    check: false
+  cloud:
+    subscribed-services: yk-task
+  provider:
+    threadpool: fixed
+    loadbalance: random
+    timeout: 3000
+    #    retries: 1
+    threads: 200
+  consumer:
+    threadpool: fixed
+    loadbalance: random
+    timeout: 3000
+    #    retries: 1
+    threads: 200
+    check: false
+  service:
+    version: 1.0.0
+#  monitor:
+#    protocol: registry
